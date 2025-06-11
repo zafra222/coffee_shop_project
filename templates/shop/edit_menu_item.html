@@ -1,0 +1,131 @@
+
+{% extends 'base.html' %}
+{% block title %}Edit Menu Item - Coffee Haven{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto px-4 py-8">
+    <h1 class="text-3xl font-bold text-brown-800 mb-8">Edit Menu Item</h1>
+    
+    <div class="bg-white rounded-lg shadow-lg p-8">
+        <form method="POST" enctype="multipart/form-data">
+            {% csrf_token %}
+            
+            {% if form.errors %}
+            <div class="mb-4 p-4 bg-red-100 border border-red-300 text-red-700 rounded">
+                {{ form.errors }}
+            </div>
+            {% endif %}
+            
+            <div class="mb-4">
+                <label for="{{ form.name.id_for_label }}" class="block text-brown-700 font-semibold mb-2">Item Name</label>
+                <input value="{{menu_item.name}}" type="text" name="name" id="id_name" value="{{ form.name.value }}" 
+                       class="w-full px-3 py-2 border border-brown-300 rounded-md focus:outline-none focus:ring-2 focus:ring-brown-500">
+            </div>
+            
+            <div class="mb-4">
+                <label for="{{ form.description.id_for_label }}" class="block text-brown-700 font-semibold mb-2">Description</label>
+                <textarea name="description" id="id_description" rows="3"
+                          class="w-full px-3 py-2 border border-brown-300 rounded-md focus:outline-none focus:ring-2 focus:ring-brown-500">{{ form.description.value }}</textarea>
+            </div>
+            
+            <div class="grid grid-cols-2 gap-4 mb-4">
+                <div>
+                    <label for="price" class="block text-brown-700 font-semibold mb-2">Price</label>
+                    <input value="{{menu_item.price}}" type="number" name="price" id="id_price"  step="0.01"
+                           class="w-full px-3 py-2 border border-brown-300 rounded-md focus:outline-none focus:ring-2 focus:ring-brown-500">
+                </div>
+                <div>
+                    <label for="{{ form.category.id_for_label }}" class="block text-brown-700 font-semibold mb-2">Category</label>
+                    <select value="{{menu_item.category}}" name="category" id="id_category" 
+                            class="w-full px-3 py-2 border border-brown-300 rounded-md focus:outline-none focus:ring-2 focus:ring-brown-500">
+                        {% for label,value in categories  %}
+                        <option > {{value}}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+            
+            <div class="mb-4">
+                <label for="{{ form.image.id_for_label }}" class="block text-brown-700 font-semibold mb-2">Image</label>
+                {% if item.image %}
+                <div class="mb-3">
+                    <img value="{{menu_item.image}}" src="{{ item.image.url }}" alt="{{ item.name }}" class="h-32 object-cover rounded-md">
+                    <div class="mt-2 flex items-center">
+                        <input type="checkbox" name="remove_image" id="remove_image" value="true" class="mr-2">
+                        <label for="remove_image" class="text-sm text-brown-600">Remove current image</label>
+                    </div>
+                </div>
+                {% endif %}
+                <input type="file" name="image" id="id_image" 
+                       class="w-full px-3 py-2 border border-brown-300 rounded-md focus:outline-none focus:ring-2 focus:ring-brown-500">
+            </div>
+            
+            <div class="mb-6">
+                <label class="flex items-center">
+                    <input value="{{menu_item.is_available}}" type="checkbox" name="is_available" id="id_is_available" 
+                           {% if form.is_available.value %}checked{% endif %} x
+                           class="w-5 h-5 text-brown-600 border-brown-300 rounded focus:ring-brown-500">
+                    <span class="ml-2 text-brown-700">Item is available</span>
+                </label>
+            </div>
+            
+            <div class="flex space-x-4">
+                <button type="submit" name="action" value="save_close" 
+                        class="flex-1 bg-brown-600 hover:bg-brown-700 text-white font-bold py-3 px-4 rounded-lg transition">
+                    Save and Close
+                </button>
+                <button type="submit" name="action" value="save_continue" 
+                        class="flex-1 bg-brown-500 hover:bg-brown-600 text-white font-bold py-3 px-4 rounded-lg transition">
+                    Save and Continue
+                </button>
+                <a href="{% url 'admin_menu' %}" 
+                   class="flex-1 bg-brown-200 hover:bg-brown-300 text-brown-800 font-bold py-3 px-4 rounded-lg transition text-center">
+                    Cancel
+                </a>
+            </div>
+        </form>
+    </div>
+    
+    {% if order_count > 0 %}
+    <div class="mt-8 bg-white rounded-lg shadow-lg p-8">
+        <h2 class="text-xl font-bold text-brown-800 mb-4">Item Statistics</h2>
+        <div class="grid grid-cols-2 gap-4">
+            <div class="bg-brown-50 p-4 rounded-lg">
+                <p class="text-brown-600">Total Orders</p>
+                <p class="text-2xl font-bold text-brown-800">{{ order_count }}</p>
+            </div>
+            <div class="bg-brown-50 p-4 rounded-lg">
+                <p class="text-brown-600">Total Revenue</p>
+                <p class="text-2xl font-bold text-brown-800">${{ total_revenue|floatformat:2 }}</p>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<style>
+    /* Custom focus styles */
+    input:focus, textarea:focus, select:focus {
+        border-color: #A67C52;
+        box-shadow: 0 0 0 3px rgba(166, 124, 82, 0.1);
+    }
+    
+    /* Style for file input */
+    input[type="file"]::file-selector-button {
+        background-color: #f3f3f3;
+        border: 1px solid #D4B896;
+        padding: 0.25rem 0.75rem;
+        border-radius: 0.25rem;
+        margin-right: 1rem;
+    }
+    
+    /* Checkbox styling */
+    input[type="checkbox"] {
+        width: 1.25rem;
+        height: 1.25rem;
+        border: 1px solid #D4B896;
+        border-radius: 0.25rem;
+        accent-color: #A67C52;
+    }
+</style>
+{% endblock %}

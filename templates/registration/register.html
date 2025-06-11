@@ -1,0 +1,60 @@
+<!-- templates/registration/register.html -->
+{% extends 'base.html' %}
+{% block title %}Register - Coffee Haven{% endblock %}
+
+{% block content %}
+<div class="max-w-md mx-auto px-4 py-8">
+    <div class="bg-white rounded-lg shadow-lg p-8">
+        <h2 class="text-3xl font-bold text-brown-800 mb-6 text-center">Create Account</h2>
+        
+        <form method="POST">
+            {% csrf_token %}
+            
+            {% if form.errors %}
+            <div class="mb-4 p-4 bg-red-100 border border-red-300 text-red-700 rounded">
+                {{ form.errors }}
+            </div>
+            {% endif %}
+            
+            <div class="mb-4">
+                <label for="{{ form.username.id_for_label }}" class="block text-brown-700 font-semibold mb-2">Username</label>
+                {{ form.username }}
+            </div>
+            
+            <div class="mb-4">
+                <label for="{{ form.password1.id_for_label }}" class="block text-brown-700 font-semibold mb-2">Password</label>
+                {{ form.password1 }}
+            </div>
+            
+            <div class="mb-6">
+                <label for="{{ form.password2.id_for_label }}" class="block text-brown-700 font-semibold mb-2">Confirm Password</label>
+                {{ form.password2 }}
+            </div>
+            
+            <button type="submit" class="w-full bg-brown-600 hover:bg-brown-700 text-white font-bold py-3 px-4 rounded-lg transition">
+                Create Account
+            </button>
+        </form>
+        
+        <p class="mt-6 text-center text-brown-600">
+            Already have an account? 
+            <a href="{% url 'login' %}" class="text-brown-700 font-semibold hover:text-brown-800">Login here</a>
+        </p>
+    </div>
+</div>
+
+<style>
+/* Style form inputs */
+input[type="text"], input[type="password"] {
+    width: 100%;
+    padding: 0.5rem 0.75rem;
+    border: 1px solid #D4B896;
+    border-radius: 0.375rem;
+    outline: none;
+}
+input[type="text"]:focus, input[type="password"]:focus {
+    border-color: #A67C52;
+    box-shadow: 0 0 0 3px rgba(166, 124, 82, 0.1);
+}
+</style>
+{% endblock %}

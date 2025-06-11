@@ -1,0 +1,351 @@
+
+{% extends 'base.html' %}
+{% block title %}Add Menu Item - Coffee Haven Admin{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-stone-50">
+  
+    <div class="bg-white border-b border-stone-200 shadow-sm">
+        <div class="max-w-4xl mx-auto px-6 py-6">
+            <div class="flex items-center space-x-4">
+                <a href="{% url 'admin_menu' %}" class="inline-flex items-center text-stone-600 hover:text-stone-900 transition-colors">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                    </svg>
+                    Back to Menu
+                </a>
+                <div class="h-6 border-l border-stone-300"></div>
+                <h1 class="text-3xl font-bold text-stone-800">Add New Menu Item</h1>
+            </div>
+            <p class="text-stone-600 mt-2">Create a new item for your coffee shop menu</p>
+        </div>
+    </div>
+
+    <div class="max-w-4xl mx-auto px-6 py-8">
+        <!-- Form Card -->
+        <div class="bg-white rounded-xl shadow-sm border border-stone-200 overflow-hidden">
+            <div class="px-6 py-4 border-b border-stone-200 bg-amber-50">
+                <div class="flex items-center">
+                    <div class="w-10 h-10 bg-amber-600 rounded-lg flex items-center justify-center mr-4">
+                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                        </svg>
+                    </div>
+                    <div>
+                        <h2 class="text-xl font-semibold text-stone-800">New Item Details</h2>
+                        <p class="text-stone-600 mt-1">Fill in the information for your new menu item</p>
+                    </div>
+                </div>
+            </div>
+
+            <form method="POST" enctype="multipart/form-data" class="p-6">
+                {% csrf_token %}
+                
+                <!-- Display Form Errors -->
+                {% if form.errors %}
+                <div class="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+                    <div class="flex">
+                        <svg class="w-5 h-5 text-red-400 mr-3 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        <div>
+                            <h3 class="text-sm font-medium text-red-800">Please correct the following errors:</h3>
+                            <ul class="mt-2 text-sm text-red-700 list-disc list-inside">
+                                {% for field, errors in form.errors.items %}
+                                    {% for error in errors %}
+                                        <li>{{ field|title }}: {{ error }}</li>
+                                    {% endfor %}
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <!-- Left Column - Basic Info -->
+                    <div class="space-y-6">
+                        <!-- Item Name -->
+                        <div>
+                            <label for="name" class="block text-sm font-medium text-stone-700 mb-2">
+                                Item Name *
+                            </label>
+                            <input type="text" 
+                                   id="name" 
+                                   name="name" 
+                                   required 
+                                   placeholder="e.g., Caramel Macchiato"
+                                   class="w-full px-4 py-3 border border-stone-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-colors">
+                            <p class="mt-1 text-xs text-stone-500">Choose a clear, descriptive name for your item</p>
+                        </div>
+
+                        <!-- Category -->
+                        <div>
+                            <label for="category" class="block text-sm font-medium text-stone-700 mb-2">
+                                Category *
+                            </label>
+                            <select id="category" 
+                                    name="category" 
+                                    required 
+                                    class="w-full px-4 py-3 border border-stone-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-colors">
+                                <option value="">Select a category...</option>
+                                {% for category_code, category_name in categories %}
+                                <option value="{{ category_code }}">{{ category_name }}</option>
+                                {% endfor %}
+                            </select>
+                            <p class="mt-1 text-xs text-stone-500">Choose the category that best fits this item</p>
+                        </div>
+
+                        <!-- Price -->
+                        <div>
+                            <label for="price" class="block text-sm font-medium text-stone-700 mb-2">
+                                Price *
+                            </label>
+                            <div class="relative">
+                                <span class="absolute left-3 top-3 text-stone-500 text-lg">$</span>
+                                <input type="number" 
+                                       id="price" 
+                                       name="price" 
+                                       step="0.01" 
+                                       min="0.01" 
+                                       required 
+                                       placeholder="0.00"
+                                       class="w-full pl-8 pr-4 py-3 border border-stone-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-colors">
+                            </div>
+                            <p class="mt-1 text-xs text-stone-500">Enter the price in dollars (e.g., 4.95)</p>
+                        </div>
+
+                        <!-- Availability -->
+                        <div>
+                            <label class="block text-sm font-medium text-stone-700 mb-3">Initial Availability</label>
+                            <div class="space-y-3">
+                                <label class="flex items-center">
+                                    <input type="radio" 
+                                           name="is_available" 
+                                           value="True" 
+                                           checked
+                                           class="w-4 h-4 text-amber-600 border-stone-300 focus:ring-amber-500">
+                                    <span class="ml-3">
+                                        <span class="text-sm font-medium text-stone-900">Available</span>
+                                        <span class="block text-xs text-stone-500">Item will be visible to customers immediately</span>
+                                    </span>
+                                </label>
+                                <label class="flex items-center">
+                                    <input type="radio" 
+                                           name="is_available" 
+                                           value="False"
+                                           class="w-4 h-4 text-amber-600 border-stone-300 focus:ring-amber-500">
+                                    <span class="ml-3">
+                                        <span class="text-sm font-medium text-stone-900">Out of Stock</span>
+                                        <span class="block text-xs text-stone-500">Item will be hidden from customers</span>
+                                    </span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right Column - Description & Image -->
+                    <div class="space-y-6">
+                        <!-- Description -->
+                        <div>
+                            <label for="description" class="block text-sm font-medium text-stone-700 mb-2">
+                                Description
+                            </label>
+                            <textarea id="description" 
+                                      name="description" 
+                                      rows="5" 
+                                      placeholder="Describe this menu item, including ingredients, flavor profile, or special preparation..."
+                                      class="w-full px-4 py-3 border border-stone-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-colors"></textarea>
+                            <p class="mt-1 text-xs text-stone-500">A good description helps customers make informed choices</p>
+                        </div>
+
+                        <!-- Image Upload -->
+                        <div>
+                            <label class="block text-sm font-medium text-stone-700 mb-2">
+                                Item Image
+                            </label>
+                            <div class="border-2 border-dashed border-stone-300 rounded-lg p-8 text-center hover:border-amber-400 transition-colors cursor-pointer"
+                                 onclick="document.getElementById('image').click()">
+                                <div id="imagePreview" class="hidden">
+                                    <img id="previewImg" class="mx-auto h-40 w-40 object-cover rounded-lg mb-4">
+                                    <p class="text-sm text-stone-600">Click to change image</p>
+                                </div>
+                                <div id="imagePlaceholder">
+                                    <svg class="mx-auto h-16 w-16 text-stone-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                                    </svg>
+                                    <p class="mt-4 text-lg font-medium text-stone-600">Upload an item image</p>
+                                    <p class="text-sm text-stone-500">Click here or drag and drop</p>
+                                    <p class="text-xs text-stone-400 mt-2">PNG, JPG up to 5MB</p>
+                                </div>
+                            </div>
+                            <input type="file" 
+                                   id="image" 
+                                   name="image" 
+                                   accept="image/*" 
+                                   class="hidden" 
+                                   onchange="previewImage(this)">
+                            <p class="mt-2 text-xs text-stone-500">High-quality images help attract customers. Recommended size: 400x400px</p>
+                        </div>
+
+                        <!-- Quick Tips -->
+                        <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                            <div class="flex">
+                                <svg class="w-5 h-5 text-blue-600 mr-3 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                </svg>
+                                <div>
+                                    <h4 class="text-sm font-medium text-blue-800">Quick Tips</h4>
+                                    <ul class="mt-2 text-xs text-blue-700 space-y-1">
+                                        <li>• Use clear, appetizing descriptions</li>
+                                        <li>• Mention any allergens or dietary options</li>
+                                        <li>• Price competitively within your market</li>
+                                        <li>• High-quality photos increase orders</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="flex items-center justify-between pt-8 mt-8 border-t border-stone-200">
+                    <a href="{% url 'admin_menu' %}" 
+                       class="inline-flex items-center px-6 py-3 border border-stone-300 rounded-lg text-sm font-medium text-stone-700 bg-white hover:bg-stone-50 transition-colors">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                        Cancel
+                    </a>
+                    
+                    <div class="flex items-center space-x-3">
+                        <button type="submit" 
+                                name="action" 
+                                value="save_add_another"
+                                class="inline-flex items-center px-6 py-3 border border-amber-300 rounded-lg text-sm font-medium text-amber-700 bg-white hover:bg-amber-50 transition-colors">
+                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                            </svg>
+                            Save & Add Another
+                        </button>
+                        <button type="submit" 
+                                name="action" 
+                                value="save_close"
+                                class="inline-flex items-center px-6 py-3 bg-amber-600 border border-transparent rounded-lg text-sm font-medium text-white hover:bg-amber-700 transition-colors shadow-sm">
+                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                            </svg>
+                            Save Item
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <!-- Preview Card -->
+        <div id="previewCard" class="mt-8 bg-white rounded-xl shadow-sm border border-stone-200 p-6 hidden">
+            <h3 class="text-lg font-semibold text-stone-800 mb-4">Preview</h3>
+            <div class="border border-stone-200 rounded-lg p-4 bg-stone-50">
+                <div class="flex items-start space-x-4">
+                    <div id="previewImageContainer" class="w-16 h-16 bg-gradient-to-br from-amber-100 to-amber-200 rounded-lg flex items-center justify-center">
+                        <span class="text-2xl">☕</span>
+                    </div>
+                    <div class="flex-1">
+                        <h4 id="previewName" class="font-semibold text-stone-900">Item Name</h4>
+                        <p id="previewDescription" class="text-sm text-stone-600 mt-1">Description will appear here...</p>
+                        <div class="flex items-center justify-between mt-3">
+                            <span id="previewPrice" class="text-lg font-bold text-amber-700">$0.00</span>
+                            <span id="previewCategory" class="text-xs bg-stone-200 text-stone-700 px-2 py-1 rounded-full">Category</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Image preview functionality
+function previewImage(input) {
+    if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            document.getElementById('previewImg').src = e.target.result;
+            document.getElementById('imagePreview').classList.remove('hidden');
+            document.getElementById('imagePlaceholder').classList.add('hidden');
+            
+            // Update preview card image
+            updatePreviewImage(e.target.result);
+        };
+        reader.readAsDataURL(input.files[0]);
+    }
+}
+
+// Live preview functionality
+function updatePreview() {
+    const name = document.getElementById('name').value || 'Item Name';
+    const description = document.getElementById('description').value || 'Description will appear here...';
+    const price = document.getElementById('price').value || '0.00';
+    const category = document.getElementById('category');
+    const categoryText = category.options[category.selectedIndex]?.text || 'Category';
+    
+    document.getElementById('previewName').textContent = name;
+    document.getElementById('previewDescription').textContent = description;
+    document.getElementById('previewPrice').textContent = `$${price}`;
+    document.getElementById('previewCategory').textContent = categoryText;
+    
+    // Show preview card if any field has content
+    if (name !== 'Item Name' || description !== 'Description will appear here...' || price !== '0.00') {
+        document.getElementById('previewCard').classList.remove('hidden');
+    }
+}
+
+function updatePreviewImage(src) {
+    const container = document.getElementById('previewImageContainer');
+    if (src) {
+        container.innerHTML = `<img src="${src}" class="w-16 h-16 object-cover rounded-lg">`;
+    } else {
+        container.innerHTML = '<span class="text-2xl">☕</span>';
+    }
+}
+
+// Add event listeners for live preview
+document.getElementById('name').addEventListener('input', updatePreview);
+document.getElementById('description').addEventListener('input', updatePreview);
+document.getElementById('price').addEventListener('input', updatePreview);
+document.getElementById('category').addEventListener('change', updatePreview);
+
+// Form validation
+document.querySelector('form').addEventListener('submit', function(e) {
+    const name = document.getElementById('name').value.trim();
+    const price = document.getElementById('price').value;
+    const category = document.getElementById('category').value;
+    
+    if (!name) {
+        e.preventDefault();
+        alert('Please enter a name for the menu item.');
+        document.getElementById('name').focus();
+        return;
+    }
+    
+    if (!category) {
+        e.preventDefault();
+        alert('Please select a category.');
+        document.getElementById('category').focus();
+        return;
+    }
+    
+    if (!price || parseFloat(price) <= 0) {
+        e.preventDefault();
+        alert('Please enter a valid price greater than 0.');
+        document.getElementById('price').focus();
+        return;
+    }
+});
+
+// Auto-focus on name field when page loads
+document.addEventListener('DOMContentLoaded', function() {
+    document.getElementById('name').focus();
+});
+</script>
+{% endblock %}

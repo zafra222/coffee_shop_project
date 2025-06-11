@@ -1,0 +1,518 @@
+
+<!-- templates/base.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    {% load static %}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}GROW A COFFEE{% endblock %}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href= "{% static "css/style.css" %}" >
+    <style>
+        /* Custom brown color palette */
+        .bg-brown-50 { background-color: #FAF7F5; }
+        .bg-brown-100 { background-color: #F5EFE7; }
+        .bg-brown-200 { background-color: #E6D5C3; }
+        .bg-brown-300 { background-color: #D4B896; }
+        .bg-brown-400 { background-color: #C19A6B; }
+        .bg-brown-500 { background-color: #A67C52; }
+        .bg-brown-600 { background-color: #8B5A3C; }
+        .bg-brown-700 { background-color: #704030; }
+        .bg-brown-800 { background-color: #5C3427; }
+        .bg-brown-900 { background-color: #3E2318; }
+        
+        .text-brown-50 { color: #FAF7F5; }
+        .text-brown-100 { color: #F5EFE7; }
+        .text-brown-200 { color: #E6D5C3; }
+        .text-brown-300 { color: #D4B896; }
+        .text-brown-400 { color: #C19A6B; }
+        .text-brown-500 { color: #A67C52; }
+        .text-brown-600 { color: #8B5A3C; }
+        .text-brown-700 { color: #704030; }
+        .text-brown-800 { color: #5C3427; }
+        .text-brown-900 { color: #3E2318; }
+        
+        .border-brown-200 { border-color: #E6D5C3; }
+        .border-brown-300 { border-color: #D4B896; }
+        .hover\:bg-brown-50:hover { background-color: #FAF7F5; }
+        .hover\:bg-brown-200:hover { background-color: #E6D5C3; }
+        .hover\:bg-brown-500:hover { background-color: #A67C52; }
+        .hover\:bg-brown-700:hover { background-color: #704030; }
+        .hover\:text-brown-200:hover { color: #E6D5C3; }
+        .focus\:ring-brown-500:focus { --tw-ring-color: #A67C52; }
+        .delete-btn {
+    background: #dc2626;
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+.delete-btn:hover {
+    background: #b91c1c;
+}
+.delete-btn:disabled {
+    background: #9ca3af;
+    cursor: not-allowed;
+}
+    </style>
+</head>
+<body class="bg-brown-50 min-h-screen text-brown-900">
+    <!-- Navigation -->
+    <!-- Navigation -->
+<!-- Conditional Navbar for base.html -->
+ {% if user.is_authenticated %}
+<nav class="bg-amber-50/95 backdrop-blur-md shadow-sm sticky top-0 z-50 border-b border-amber-200">
+    <div class=" mx-auto px-4">
+        <div class="flex justify-between h-20 items-center">
+            <!-- Logo/Brand -->
+            <div class="flex items-center space-x-3">
+                {% if user.is_authenticated and user.userprofile.is_admin %}
+                    <!-- Admin Logo -->
+                    <a href="{% url 'admin_dashboard' %}" class="flex items-center space-x-3 group">
+                        <div class="w-12 h-12 rounded-full bg-red-800 flex items-center justify-center group-hover:bg-red-900 transition-all duration-300">
+                            <span class="text-2xl text-white">⚙️</span>
+                        </div>
+                        <div class="flex flex-col">
+                            <span class="text-xl font-bold text-red-900 group-hover:text-red-700 transition-colors">COFFEE ADMIN</span>
+                            <span class="text-xs text-red-600 font-medium">Management Panel</span>
+                        </div>
+                    </a>
+                {% else %}
+                    <!-- Customer Logo -->
+                    <a href="{% url 'home' %}" class="flex items-center space-x-3 group">
+                        <div class="w-12 h-12 rounded-full bg-amber-800 flex items-center justify-center group-hover:bg-amber-900 transition-all duration-300">
+                            <span class="text-2xl text-white">☕</span>
+                        </div>
+                        <span class="text-xl font-bold text-amber-900 group-hover:text-amber-700 transition-colors">GROW A COFFE</span>
+                    </a>
+                {% endif %}
+            </div>
+
+            {% if user.is_authenticated and user.userprofile.is_admin %}
+                <!-- ADMIN NAVIGATION -->
+                <div class="hidden lg:flex items-center space-x-6">
+                    <a href="{% url 'admin_dashboard' %}" class="px-4 py-2 text-red-900 hover:text-red-600 transition-colors duration-200 font-semibold text-lg tracking-wide flex items-center space-x-2">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                        </svg>
+                        <span>DASHBOARD</span>
+                    </a>
+                    <a href="{% url 'admin_menu' %}" class="px-4 py-2 text-red-900 hover:text-red-600 transition-colors duration-200 font-semibold text-lg tracking-wide flex items-center space-x-2">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
+                        </svg>
+                        <span>MANAGE MENU</span>
+                    </a>
+                    <a href="{% url 'admin_orders' %}" class="px-4 py-2 text-red-900 hover:text-red-600 transition-colors duration-200 font-semibold text-lg tracking-wide flex items-center space-x-2">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+                        </svg>
+                        <span>ORDERS</span>
+                    </a>
+                    
+                </div>
+
+                <!-- Admin User Section -->
+                <div class="flex items-center space-x-4">
+                    <!-- Admin Badge -->
+                    <div class="hidden sm:flex items-center space-x-3">
+                        <div class="flex items-center justify-center w-10 h-10 rounded-full bg-red-100 text-red-700 font-bold">
+                            {{ user.username|first|upper }}
+                        </div>
+                        <div class="flex flex-col">
+                            <span class="text-sm font-semibold text-red-900">{{ user.username }}</span>
+                            <span class="text-xs text-red-600 font-medium">Administrator</span>
+                        </div>
+                    </div>
+                    
+                    
+                    
+                   
+                    <a href="{% url 'logout' %}" class="px-4 py-2 text-sm rounded-lg bg-red-600 text-white hover:bg-red-700 transition-colors duration-200 font-medium">
+                        Logout
+                    </a>
+                    
+                   
+                    <button class="lg:hidden p-2 rounded-md text-red-900 hover:bg-red-100 transition-colors" onclick="toggleMobileMenu()">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                        </svg>
+                    </button>
+                </div>
+
+            {% else %}
+                
+                <div class="hidden lg:flex items-center space-x-8">
+                    <a href="{% url 'home' %}" class="px-4 py-2 text-amber-900 hover:text-amber-600 transition-colors duration-200 font-semibold text-lg tracking-wide">
+                        HOME
+                    </a>
+                    <a href="{% url 'about' %}" class="px-4 py-2 text-amber-900 hover:text-amber-600 transition-colors duration-200 font-semibold text-lg tracking-wide">
+                        ABOUT
+                    </a>
+                    <a href="{% url 'menu' %}" class="px-4 py-2 text-amber-900 hover:text-amber-600 transition-colors duration-200 font-semibold text-lg tracking-wide">
+                        MENU
+                    </a>
+                    <a href="{% url 'contact' %}" class="px-4 py-2 text-amber-900 hover:text-amber-600 transition-colors duration-200 font-semibold text-lg tracking-wide">
+                        CONTACT
+                    </a>
+                </div>
+
+               
+                <div class="flex items-center space-x-4">
+                    {% if user.is_authenticated %}
+                        
+
+                  
+                        <div class="hidden sm:flex items-center space-x-3">
+                            <div class="flex items-center justify-center w-9 h-9 rounded-full bg-amber-100 text-amber-700 font-medium">
+                                {{ user.username|first|upper }}
+                            </div>
+                            <span class="text-sm text-amber-600">Hi, {{ user.username }}</span>
+                        </div>
+
+                  
+                        <a href="{% url 'order_history' %}" class="hidden md:inline-flex px-3 py-2 text-sm rounded-lg border border-amber-200 text-amber-700 hover:bg-amber-50 transition-colors duration-200 font-medium">
+                            My Orders
+                        </a>
+
+                        
+
+                  
+                        <a href="{% url 'logout' %}" class="px-3 py-2 text-sm rounded-lg border border-amber-200 text-amber-700 hover:bg-amber-50 transition-colors duration-200 font-medium">
+                            Logout
+                        </a>
+                    {% else %}
+                        
+                
+                        <a href="{% url 'login' %}" class="px-4 py-2 text-sm rounded-lg text-amber-700 hover:bg-amber-50 transition-colors duration-200 font-medium">
+                            Sign In
+                        </a>
+                        <a href="{% url 'register' %}" class="px-4 py-2 text-sm rounded-lg bg-amber-600 text-white hover:bg-amber-700 transition-colors duration-200 font-medium shadow-sm">
+                            Join Now
+                        </a>
+                    {% endif %}
+
+                
+                    <button class="lg:hidden p-2 rounded-md text-amber-900 hover:bg-amber-100 transition-colors" onclick="toggleMobileMenu()">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                        </svg>
+                    </button>
+                </div>
+            {% endif %}
+        </div>
+
+
+        <div id="mobileMenu" class="hidden lg:hidden border-t border-amber-200 bg-amber-50/95 backdrop-blur-md">
+            <div class="px-2 pt-2 pb-3 space-y-1">
+                {% if user.is_authenticated and user.userprofile.is_admin %}
+   
+                    <a href="{% url 'admin_dashboard' %}" class="block px-3 py-2 text-red-900 hover:bg-red-100 rounded-md font-semibold flex items-center space-x-2">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+                        <span>DASHBOARD</span>
+                    </a>
+                    <a href="{% url 'admin_menu' %}" class="block px-3 py-2 text-red-900 hover:bg-red-100 rounded-md font-semibold flex items-center space-x-2">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>
+                        <span>MANAGE MENU</span>
+                    </a>
+                    <a href="{% url 'admin_orders' %}" class="block px-3 py-2 text-red-900 hover:bg-red-100 rounded-md font-semibold flex items-center space-x-2">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path></svg>
+                        <span>ORDERS</span>
+                    </a>
+                    
+                    <div class="px-3 py-2 border-t border-red-200 mt-2">
+                        <a href="{% url 'home' %}" class="text-red-700 font-medium hover:text-red-600">👁️ View as Customer</a>
+                    </div>
+                {% else %}
+              
+                    <a href="{% url 'home' %}" class="block px-3 py-2 text-amber-900 hover:bg-amber-100 rounded-md font-semibold">HOME</a>
+                    <a href="{% url 'about' %}" class="block px-3 py-2 text-amber-900 hover:bg-amber-100 rounded-md font-semibold">ABOUT</a>
+                    <a href="{% url 'menu' %}" class="block px-3 py-2 text-amber-900 hover:bg-amber-100 rounded-md font-semibold">MENU</a>
+                    <a href="{% url 'contact' %}" class="block px-3 py-2 text-amber-900 hover:bg-amber-100 rounded-md font-semibold">CONTACT</a>
+                    {% if user.is_authenticated %}
+                        <a href="{% url 'order_history' %}" class="block px-3 py-2 text-amber-900 hover:bg-amber-100 rounded-md font-semibold">MY ORDERS</a>
+                    {% endif %}
+                    <div class="px-3 py-2 border-t border-amber-200 mt-2">
+                        <span class="text-amber-900 font-semibold">Call Now! </span>
+                        <a href="tel:+1234567890" class="text-amber-800 font-bold hover:text-amber-600">123-456-7890</a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</nav>
+{% endif %}
+
+        <div id="toast-container" class="fixed top-4 right-4 z-50 space-y-2" >
+          
+        </div>
+
+{% if messages %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    {% for message in messages %}
+        showToast('{{ message|escapejs }}', '{{ message.tags }}');
+    {% endfor %}
+});
+</script>
+{% endif %}
+
+
+    <main class="min-h-screen">
+        {% block content %}
+        {% endblock %}
+    </main>
+
+
+    <footer class="bg-brown-900 text-brown-100 py-8 mt-12">
+        <div class="max-w-7xl mx-auto px-4 text-center">
+            <p>&copy; 2024 Coffee Haven. Brewing happiness daily.</p>
+        </div>
+    </footer>
+    <script>
+
+        let toastId = 0;
+
+function showToast(message, type = 'info', duration = 3000) {
+    const toastContainer = document.getElementById('toast-container');
+    if (!toastContainer) {
+        console.warn('Toast container not found');
+        return;
+    }
+    
+   
+    const currentToastId = ++toastId;
+    
+ 
+    const typeMap = {
+        'error': 'error',
+        'success': 'success',
+        'warning': 'warning',
+        'info': 'info',
+        'debug': 'info'
+    };
+    
+    const toastType = typeMap[type] || 'info';
+    
+ 
+    const styles = {
+        success: {
+            bg: 'bg-emerald-50',
+            border: 'border-emerald-200',
+            text: 'text-emerald-800',
+            icon: 'text-emerald-600',
+            iconPath: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>'
+        },
+        error: {
+            bg: 'bg-red-50',
+            border: 'border-red-200',
+            text: 'text-red-800',
+            icon: 'text-red-600',
+            iconPath: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>'
+        },
+        warning: {
+            bg: 'bg-amber-50',
+            border: 'border-amber-200',
+            text: 'text-amber-800',
+            icon: 'text-amber-600',
+            iconPath: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.464 0L4.35 16.5c-.77.833.192 2.5 1.732 2.5z"></path>'
+        },
+        info: {
+            bg: 'bg-blue-50',
+            border: 'border-blue-200',
+            text: 'text-blue-800',
+            icon: 'text-blue-600',
+            iconPath: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>'
+        }
+    };
+    
+    const style = styles[toastType];
+    
+   
+    const toast = document.createElement('div');
+    toast.id = `toast-${currentToastId}`;
+    toast.className = `
+        ${style.bg} ${style.border} ${style.text}
+        border rounded-lg p-4 shadow-lg transform transition-all duration-300 ease-in-out
+        translate-x-full opacity-0 max-w-sm w-full
+    `;
+    
+    toast.innerHTML = `
+        <div class="flex items-start">
+            <div class="flex-shrink-0">
+                <svg class="w-5 h-5 ${style.icon}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    ${style.iconPath}
+                </svg>
+            </div>
+            <div class="ml-3 flex-1">
+                <p class="text-sm font-medium">${message}</p>
+            </div>
+            <div class="ml-4 flex-shrink-0 flex">
+                <button onclick="hideToast(${currentToastId})" class="inline-flex ${style.text} hover:opacity-75 focus:outline-none">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        
+        <!-- Progress bar for auto-dismiss -->
+        <div class="mt-2 w-full bg-white bg-opacity-30 rounded-full h-1">
+            <div class="toast-progress bg-current rounded-full h-1 transition-all duration-[${duration}ms] ease-linear" style="width: 100%"></div>
+        </div>
+    `;
+    
+   
+    toastContainer.appendChild(toast);
+    
+
+    setTimeout(() => {
+        toast.classList.remove('translate-x-full', 'opacity-0');
+        toast.classList.add('translate-x-0', 'opacity-100');
+        
+     
+        const progressBar = toast.querySelector('.toast-progress');
+        if (progressBar) {
+            setTimeout(() => {
+                progressBar.style.width = '0%';
+            }, 100);
+        }
+    }, 10);
+    
+
+    setTimeout(() => {
+        hideToast(currentToastId);
+    }, duration);
+    
+    return currentToastId;
+}
+
+function hideToast(toastId) {
+    const toast = document.getElementById(`toast-${toastId}`);
+    if (toast) {
+        toast.classList.add('translate-x-full', 'opacity-0');
+        toast.classList.remove('translate-x-0', 'opacity-100');
+        
+        
+        setTimeout(() => {
+            if (toast.parentNode) {
+                toast.parentNode.removeChild(toast);
+            }
+        }, 300);
+    }
+}
+
+function hideAllToasts() {
+    const toastContainer = document.getElementById('toast-container');
+    if (toastContainer) {
+        const toasts = toastContainer.children;
+        for (let toast of toasts) {
+            toast.classList.add('translate-x-full', 'opacity-0');
+        }
+        
+        setTimeout(() => {
+            toastContainer.innerHTML = '';
+        }, 300);
+    }
+}
+
+
+function showSuccessToast(message, duration = 5000) {
+    return showToast(message, 'success', duration);
+}
+
+function showErrorToast(message, duration = 5000) {
+    return showToast(message, 'error', duration);
+}
+
+function showWarningToast(message, duration = 5000) {
+    return showToast(message, 'warning', duration);
+}
+
+function showInfoToast(message, duration = 5000) {
+    return showToast(message, 'info', duration);
+}
+
+
+document.addEventListener('DOMContentLoaded', function() {
+    const imageInput = document.getElementById('{{ form.image.id_for_label }}');
+    const imagePreview = document.getElementById('image-preview');
+    const previewImage = document.getElementById('preview');
+    const uploadArea = document.getElementById('upload-area');
+    const removeButton = document.getElementById('remove-image');
+    
+    
+    imageInput.addEventListener('change', function(event) {
+        const file = event.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            
+            reader.onload = function(e) {
+                previewImage.src = e.target.result;
+                imagePreview.classList.remove('hidden');
+                uploadArea.classList.add('hidden');
+            }
+            
+            reader.readAsDataURL(file);
+        }
+    });
+    
+ 
+    removeButton.addEventListener('click', function() {
+        imageInput.value = '';
+        previewImage.src = '#';
+        imagePreview.classList.add('hidden');
+        uploadArea.classList.remove('hidden');
+    });
+    
+ 
+    const dropArea = imagePreview.parentElement;
+    
+    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+        dropArea.addEventListener(eventName, preventDefaults, false);
+    });
+    
+    function preventDefaults(e) {
+        e.preventDefault();
+        e.stopPropagation();
+    }
+    
+    ['dragenter', 'dragover'].forEach(eventName => {
+        dropArea.addEventListener(eventName, highlight, false);
+    });
+    
+    ['dragleave', 'drop'].forEach(eventName => {
+        dropArea.addEventListener(eventName, unhighlight, false);
+    });
+    
+    function highlight() {
+        dropArea.classList.add('border-coffee-400', 'bg-coffee-50');
+    }
+    
+    function unhighlight() {
+        dropArea.classList.remove('border-coffee-400', 'bg-coffee-50');
+    }
+    
+    dropArea.addEventListener('drop', handleDrop, false);
+    
+    function handleDrop(e) {
+        const dt = e.dataTransfer;
+        const files = dt.files;
+        imageInput.files = files;
+        
+ 
+        const event = new Event('change');
+        imageInput.dispatchEvent(event);
+    }
+});
+function toggleMobileMenu() {
+    const menu = document.getElementById('mobileMenu');
+    menu.classList.toggle('hidden');
+}
+</script>
+
+</body>
+</html>

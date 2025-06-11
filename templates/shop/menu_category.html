@@ -1,0 +1,86 @@
+
+{% extends 'base.html' %}
+{% block title %}{{ category_name }} - Coffee Haven{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <!-- Category Header -->
+    <div class="text-center mb-12">
+        <nav class="flex justify-center mb-4" aria-label="Breadcrumb">
+            <ol class="inline-flex items-center space-x-1 md:space-x-3">
+                <li class="inline-flex items-center">
+                    <a href="{% url 'menu' %}" class="inline-flex items-center text-sm font-medium text-coffee-600 hover:text-coffee-800">
+                        Menu
+                    </a>
+                </li>
+                <li aria-current="page">
+                    <div class="flex items-center">
+                        <svg class="w-6 h-6 text-coffee-400" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                            <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"></path>
+                        </svg>
+                        <span class="ml-1 text-sm font-medium text-coffee-500 md:ml-2">{{ category_name }}</span>
+                    </div>
+                </li>
+            </ol>
+        </nav>
+        
+        <h1 class="text-4xl font-serif font-bold text-coffee-900 mb-2">{{ category_name }}</h1>
+        <p class="text-coffee-600">Explore our selection of {{ category_name|lower }}</p>
+    </div>
+    
+    <!-- Menu Items Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        {% for item in menu_items %}
+        <div class="bg-white rounded-xl shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden group">
+            {% if item.image %}
+            <div class="relative overflow-hidden h-56">
+                <img src="{{ item.image.url }}" alt="{{ item.name }}" 
+                     class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105">
+                <div class="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
+            </div>
+            {% else %}
+            <div class="w-full h-56 bg-coffee-100 flex items-center justify-center">
+                <span class="text-7xl text-coffee-400">☕</span>
+            </div>
+            {% endif %}
+            
+            <div class="p-6">
+                <div class="flex justify-between items-start mb-2">
+                    <h3 class="text-xl font-medium text-coffee-900">{{ item.name }}</h3>
+                    <span class="text-xl font-bold text-coffee-800">${{ item.price }}</span>
+                </div>
+                <p class="text-coffee-600 text-sm leading-relaxed">{{ item.description }}</p>
+                
+                {% if user.is_authenticated and not user.userprofile.is_admin %}
+                <div class="flex items-center justify-between mt-4">
+                    <div class="flex items-center space-x-2 bg-coffee-50 rounded-lg px-3 py-2">
+                        <button type="button" onclick="this.parentNode.querySelector('input[type=number]').stepDown()" 
+                                class="text-coffee-500 hover:text-coffee-700 focus:outline-none">
+                            -
+                        </button>
+                        <input type="number" name="item_{{ item.id }}" 
+                               min="0" max="10" value="0" 
+                               class="w-12 text-center bg-transparent border-0 text-coffee-900 focus:ring-0">
+                        <button type="button" onclick="this.parentNode.querySelector('input[type=number]').stepUp()" 
+                                class="text-coffee-500 hover:text-coffee-700 focus:outline-none">
+                            +
+                        </button>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    
+    <!-- Back to Menu Link -->
+    <div class="mt-12 text-center">
+        <a href="{% url 'menu' %}" class="inline-flex items-center text-coffee-600 hover:text-coffee-800">
+            <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+            </svg>
+            Back to Full Menu
+        </a>
+    </div>
+</div>
+{% endblock %}

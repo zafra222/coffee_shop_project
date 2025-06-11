@@ -1,0 +1,535 @@
+
+{% extends 'base.html' %}
+{% block title %}Order Management - Coffee Haven Admin{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-stone-50">
+  
+    <div class="bg-white border-b border-stone-200 shadow-sm">
+        <div class="max-w-7xl mx-auto px-6 py-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h1 class="text-3xl font-bold text-stone-800">Order Management</h1>
+                    <p class="text-stone-600 mt-1">Monitor and manage incoming orders efficiently</p>
+                </div>
+                <div class="flex items-center space-x-4">
+                  
+                    <div class="flex items-center space-x-2">
+                        <label class="text-sm font-medium text-stone-700">Auto-refresh:</label>
+                        <input type="checkbox" id="autoRefresh" class="w-4 h-4 text-amber-600 rounded focus:ring-amber-500" checked>
+                        <span class="text-sm text-stone-600">30s</span>
+                    </div>
+                  
+                    <button onclick="refreshOrders()" class="inline-flex items-center px-4 py-2 border border-stone-300 rounded-lg text-sm font-medium text-stone-700 bg-white hover:bg-stone-50 transition-colors">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                        </svg>
+                        Refresh
+                    </button>
+                    <!-- Last updated indicator -->
+                    <div class="text-sm text-stone-500">
+                        Last updated: <span id="lastUpdated">{{ 'now'|date:"g:i A" }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="max-w-7xl mx-auto px-6 py-6">
+       
+        <!-- Quick Stats & Filters -->
+        <div class="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-8">
+            <!-- Quick Stats Cards -->
+            <div class="bg-white rounded-xl shadow-sm border border-stone-200 p-6">
+                <div class="flex items-center">
+                    <div class="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
+                        <svg class="w-6 h-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-sm font-medium text-stone-600">Pending Orders</p>
+                        <p class="text-2xl font-bold text-stone-900">{{ pending_count|default:0 }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-xl shadow-sm border border-stone-200 p-6">
+                <div class="flex items-center">
+                    <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                        <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 7.172V5L8 4z"></path>
+                        </svg>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-sm font-medium text-stone-600">Preparing</p>
+                        <p class="text-2xl font-bold text-stone-900">{{ preparing_count|default:0 }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-xl shadow-sm border border-stone-200 p-6">
+                <div class="flex items-center">
+                    <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+                        <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                        </svg>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-sm font-medium text-stone-600">Ready</p>
+                        <p class="text-2xl font-bold text-stone-900">{{ ready_count|default:0 }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-xl shadow-sm border border-stone-200 p-6">
+                <div class="flex items-center">
+                    <div class="w-12 h-12 bg-emerald-100 rounded-lg flex items-center justify-center">
+                        <svg class="w-6 h-6 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"></path>
+                        </svg>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-sm font-medium text-stone-600">Today's Revenue</p>
+                        <p class="text-2xl font-bold text-stone-900">₱{{ today_revenue|default:0|floatformat:2 }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filters and Search Section -->
+        <div class="bg-white rounded-xl shadow-sm border border-stone-200 p-6 mb-6">
+            <div class="grid grid-cols-1 lg:grid-cols-4 gap-4">
+                <!-- Search Bar -->
+                <div class="lg:col-span-2">
+                    <label class="block text-sm font-medium text-stone-700 mb-2">Search Orders</label>
+                    <div class="relative">
+                        <input type="text" id="searchInput" placeholder="Search by Order ID, Customer Name..." 
+                               class="w-full pl-10 pr-4 py-3 border border-stone-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <svg class="h-5 w-5 text-stone-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Status Filter -->
+                <div>
+                    <label class="block text-sm font-medium text-stone-700 mb-2">Filter by Status</label>
+                    <select id="statusFilter" class="w-full px-4 py-3 border border-stone-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent">
+                        <option value="all">All Orders</option>
+                        {% for status_code, status_name in status_choices %}
+                        <option value="{{ status_code }}" {% if status_filter == status_code %}selected{% endif %}>{{ status_name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- Date Filter -->
+                <div>
+                    <label class="block text-sm font-medium text-stone-700 mb-2">Date Range</label>
+                    <select id="dateFilter" class="w-full px-4 py-3 border border-stone-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent">
+                        <option value="today">Today</option>
+                        <option value="yesterday">Yesterday</option>
+                        <option value="week">This Week</option>
+                        <option value="month">This Month</option>
+                        <option value="all">All Time</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- Orders Table -->
+        <div class="bg-white rounded-xl shadow-sm border border-stone-200 overflow-hidden">
+            <div class="px-6 py-4 border-b border-stone-200">
+                <div class="flex items-center justify-between">
+                    <h2 class="text-lg font-semibold text-stone-800">Orders</h2>
+                    <div class="flex items-center space-x-2 text-sm text-stone-600">
+                        <span>Showing {{ orders.count }} orders</span>
+                     
+                    </div>
+                </div>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-stone-200">
+                    <thead class="bg-stone-50">
+                        <tr>
+                            <th class="px-6 py-4 text-left text-xs font-medium text-stone-500 uppercase tracking-wider">
+                                Order ID
+                            </th>
+                            <th class="px-6 py-4 text-left text-xs font-medium text-stone-500 uppercase tracking-wider">
+                                Customer
+                            </th>
+                            <th class="px-6 py-4 text-left text-xs font-medium text-stone-500 uppercase tracking-wider">
+                                Order Time
+                            </th>
+                            <th class="px-6 py-4 text-left text-xs font-medium text-stone-500 uppercase tracking-wider">
+                                Items
+                            </th>
+                            <th class="px-6 py-4 text-left text-xs font-medium text-stone-500 uppercase tracking-wider">
+                                Total
+                            </th>
+                            <th class="px-6 py-4 text-left text-xs font-medium text-stone-500 uppercase tracking-wider">
+                                Status
+                            </th>
+                            <th class="px-6 py-4 text-left text-xs font-medium text-stone-500 uppercase tracking-wider">
+                                Actions
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody id="ordersTableBody" class="bg-white divide-y divide-stone-200">
+                        {% for order in orders %}
+                        <tr class="hover:bg-stone-50 transition-colors order-row" data-order-id="{{ order.id }}">
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="flex items-center">
+                                    <div class="text-sm font-bold text-stone-900">#{{ order.id }}</div>
+                                    {% if order.created_at|timesince < "5 minutes" %}
+                                    <span class="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800">
+                                        NEW
+                                    </span>
+                                    {% endif %}
+                                </div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="text-sm font-medium text-stone-900">{{ order.customer.username }}</div>
+                                {% if order.customer.userprofile.phone %}
+                                <div class="text-sm text-stone-500">{{ order.customer.userprofile.phone }}</div>
+                                {% endif %}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="text-sm text-stone-900">{{ order.created_at|date:"M d" }}</div>
+                                <div class="text-sm text-stone-500">{{ order.created_at|date:"g:i A" }}</div>
+                            </td>
+                            <td class="px-6 py-4">
+                                <div class="text-sm text-stone-900">
+                                    {{ order.items.count }} item{{ order.items.count|pluralize }}
+                                </div>
+                                <div class="text-xs text-stone-500 truncate max-w-xs">
+                                    {% for item in order.items.all|slice:":2" %}
+                                        {{ item.menu_item.name }}{% if not forloop.last %}, {% endif %}
+                                    {% endfor %}
+                                    {% if order.items.count > 2 %}...{% endif %}
+                                </div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="text-sm font-semibold text-stone-900">₱{{ order.total_amount }}</div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <!-- Editable Status Display -->
+                                <div id="status-display-{{ order.id }}">
+                                    <span class="inline-flex px-3 py-1 text-xs font-semibold rounded-full cursor-pointer hover:opacity-80 transition-opacity
+                                        {% if order.status == 'pending' %}bg-amber-100 text-amber-800
+                                        {% elif order.status == 'preparing' %}bg-blue-100 text-blue-800
+                                        {% elif order.status == 'ready' %}bg-green-100 text-green-800
+                                        {% elif order.status == 'completed' %}bg-emerald-100 text-emerald-800
+                                        {% elif order.status == 'cancelled' %}bg-red-100 text-red-800
+                                        {% endif %}"
+                                        onclick="showStatusEdit({{ order.id }}, '{{ order.status }}')">
+                                        {{ order.get_status_display }}
+                                        <svg class="w-3 h-3 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                                        </svg>
+                                    </span>
+                                </div>
+                                
+                                <!-- Editable Status Form (Hidden by default) -->
+                                <div id="status-edit-{{ order.id }}" class="hidden">
+                                    <form method="post" action="{% url 'admin_order_update_status' order.id %}" class="inline-flex items-center space-x-2">
+                                        {% csrf_token %}
+                                        <select name="status" class="text-xs border border-stone-300 rounded px-2 py-1 focus:ring-1 focus:ring-amber-500">
+                                            {% for status_code, status_name in status_choices %}
+                                            <option value="{{ status_code }}" {% if status_code == order.status %}selected{% endif %}>{{ status_name }}</option>
+                                            {% endfor %}
+                                        </select>
+                                        <button type="submit" class="text-green-600 hover:text-green-800" title="Save">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                            </svg>
+                                        </button>
+                                        <button type="button" onclick="hideStatusEdit({{ order.id }})" class="text-red-600 hover:text-red-800" title="Cancel">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                            </svg>
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm space-x-2">
+                                <!-- Quick Status Actions -->
+                                {% if order.status == 'pending' %}
+                                <form method="post" action="{% url 'admin_order_update_status' order.id %}" class="inline">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="status" value="preparing">
+                                    <button type="submit" class="inline-flex items-center px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded hover:bg-blue-200 transition-colors" title="Start Preparing">
+                                        <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                                        </svg>
+                                        Start
+                                    </button>
+                                </form>
+                                {% elif order.status == 'preparing' %}
+                                <form method="post" action="{% url 'admin_order_update_status' order.id %}" class="inline">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="status" value="ready">
+                                    <button type="submit" class="inline-flex items-center px-2 py-1 bg-green-100 text-green-800 text-xs rounded hover:bg-green-200 transition-colors" title="Mark Ready">
+                                        <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                        </svg>
+                                        Ready
+                                    </button>
+                                </form>
+                                {% elif order.status == 'ready' %}
+                                <form method="post" action="{% url 'admin_order_update_status' order.id %}" class="inline">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="status" value="completed">
+                                    <button type="submit" class="inline-flex items-center px-2 py-1 bg-emerald-100 text-emerald-800 text-xs rounded hover:bg-emerald-200 transition-colors" title="Mark Completed">
+                                        <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                        </svg>
+                                        Complete
+                                    </button>
+                                </form>
+                                {% endif %}
+                                
+                                <!-- View Details Button -->
+                                <button onclick="openOrderDetail({{ order.id }})" class="text-stone-600 hover:text-stone-900 transition-colors" title="View Details">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                                    </svg>
+                                </button>
+
+                                
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="7" class="px-6 py-12 text-center">
+                                <div class="text-stone-500">
+                                    <svg class="w-12 h-12 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+                                    </svg>
+                                    <p class="text-lg font-medium">No orders found</p>
+                                    <p class="text-sm">Orders will appear here once customers start placing them.</p>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Order Detail Modal -->
+<div id="orderDetailModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50">
+    <div class="flex items-center justify-center min-h-screen p-4">
+        <div class="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-screen overflow-y-auto">
+            <div id="orderDetailContent">
+                <!-- Content will be loaded dynamically -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Status editing functions
+function showStatusEdit(orderId, currentStatus) {
+    document.getElementById(`status-display-${orderId}`).classList.add('hidden');
+    document.getElementById(`status-edit-${orderId}`).classList.remove('hidden');
+}
+
+function hideStatusEdit(orderId) {
+    document.getElementById(`status-display-${orderId}`).classList.remove('hidden');
+    document.getElementById(`status-edit-${orderId}`).classList.add('hidden');
+}
+
+// Auto-refresh functionality
+let autoRefreshInterval;
+
+function refreshOrders() {
+    document.getElementById('lastUpdated').textContent = 'Refreshing...';
+    window.location.reload();
+}
+
+function toggleAutoRefresh() {
+    const checkbox = document.getElementById('autoRefresh');
+    if (checkbox.checked) {
+        autoRefreshInterval = setInterval(refreshOrders, 30000);
+    } else {
+        clearInterval(autoRefreshInterval);
+    }
+}
+
+// Initialize auto-refresh
+document.addEventListener('DOMContentLoaded', function() {
+    toggleAutoRefresh();
+    document.getElementById('autoRefresh').addEventListener('change', toggleAutoRefresh);
+});
+
+// Search and filter functionality
+document.getElementById('searchInput').addEventListener('input', function() {
+    filterOrders();
+});
+
+document.getElementById('statusFilter').addEventListener('change', function() {
+    filterOrders();
+});
+
+document.getElementById('dateFilter').addEventListener('change', function() {
+    filterOrders();
+});
+
+function filterOrders() {
+    const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+    const statusFilter = document.getElementById('statusFilter').value;
+    const rows = document.querySelectorAll('.order-row');
+    
+    rows.forEach(row => {
+        const text = row.textContent.toLowerCase();
+        const status = row.querySelector('[class*="bg-"]').textContent.toLowerCase().trim();
+        
+        let showRow = true;
+        
+        if (searchTerm && !text.includes(searchTerm)) {
+            showRow = false;
+        }
+        
+        if (statusFilter !== 'all' && !status.includes(statusFilter)) {
+            showRow = false;
+        }
+        
+        row.style.display = showRow ? '' : 'none';
+    });
+}
+
+// Order detail modal
+function openOrderDetail(orderId) {
+    const modal = document.getElementById('orderDetailModal');
+    const content = document.getElementById('orderDetailContent');
+    
+    content.innerHTML = `
+        <div class="p-8 text-center">
+            <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-amber-600 mx-auto"></div>
+            <p class="mt-4 text-stone-600">Loading order details...</p>
+        </div>
+    `;
+    
+    modal.classList.remove('hidden');
+    
+    fetch(`/manage/orders/${orderId}/detail/`)
+        .then(response => response.json())
+        .then(data => {
+            content.innerHTML = generateOrderDetailHTML(data);
+        })
+        .catch(error => {
+            content.innerHTML = `
+                <div class="p-8 text-center">
+                    <p class="text-red-600">Error loading order details</p>
+                    <button onclick="closeOrderDetail()" class="mt-4 px-4 py-2 bg-stone-600 text-white rounded-lg">Close</button>
+                </div>
+            `;
+        });
+}
+
+function closeOrderDetail() {
+    document.getElementById('orderDetailModal').classList.add('hidden');
+}
+
+function generateOrderDetailHTML(order) {
+    return `
+        <div class="p-6 border-b border-stone-200">
+            <div class="flex items-center justify-between">
+                <h2 class="text-2xl font-bold text-stone-800">Order #${order.id}</h2>
+                <button onclick="closeOrderDetail()" class="text-stone-400 hover:text-stone-600">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        
+        <div class="p-6">
+            <div class="grid grid-cols-2 gap-6 mb-6">
+                <div>
+                    <h3 class="font-semibold text-stone-800 mb-2">Customer Information</h3>
+                    <p class="text-stone-600">${order.customer_name}</p>
+                    <p class="text-stone-600">${order.customer_phone || ''}</p>
+                    <p class="text-xs text-stone-500 mt-2">${order.created_at}</p>
+                </div>
+                <div>
+                    <h3 class="font-semibold text-stone-800 mb-2">Order Status</h3>
+                    <span class="inline-flex px-3 py-1 text-sm font-medium rounded-full ${getStatusClasses(order.status)}">
+                        ${getStatusDisplay(order.status)}
+                    </span>
+                </div>
+            </div>
+            
+            <div class="mb-6">
+                <h3 class="font-semibold text-stone-800 mb-4">Order Items</h3>
+                ${order.items.map(item => `
+                    <div class="flex justify-between items-center py-2 border-b border-stone-100">
+                        <div>
+                            <span class="font-medium">${item.name}</span>
+                            <span class="text-stone-600 ml-2">x${item.quantity}</span>
+                            <span class="text-stone-500 text-sm ml-2">₱${item.price} each</span>
+                        </div>
+                        <span class="font-medium">₱${item.total}</span>
+                    </div>
+                `).join('')}
+                <div class="flex justify-between items-center py-3 font-bold text-lg border-t border-stone-200 mt-2">
+                    <span>Total:</span>
+                    <span>₱${order.total}</span>
+                </div>
+            </div>
+            
+            ${order.notes ? `
+                <div class="mb-6 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                    <h4 class="font-medium text-blue-800 mb-1">Special Notes:</h4>
+                    <p class="text-blue-700 text-sm">${order.notes}</p>
+                </div>
+            ` : ''}
+            
+            <div class="flex space-x-3">
+               
+                <button onclick="closeOrderDetail()" class="flex-1 bg-gray-300 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-400 transition-colors">
+                    Close
+                </button>
+            </div>
+        </div>
+    `;
+}
+
+function getStatusClasses(status) {
+    const classes = {
+        'pending': 'bg-amber-100 text-amber-800',
+        'preparing': 'bg-blue-100 text-blue-800',
+        'ready': 'bg-green-100 text-green-800',
+        'completed': 'bg-emerald-100 text-emerald-800',
+        'cancelled': 'bg-red-100 text-red-800'
+    };
+    return classes[status] || 'bg-gray-100 text-gray-800';
+}
+
+function getStatusDisplay(status) {
+    const displays = {
+        'pending': 'Pending',
+        'preparing': 'Preparing',
+        'ready': 'Ready',
+        'completed': 'Completed',
+        'cancelled': 'Cancelled'
+    };
+    return displays[status] || status;
+}
+
+
+// Close modal when clicking outside
+document.getElementById('orderDetailModal').addEventListener('click', function(e) {
+    if (e.target === this) {
+        closeOrderDetail();
+    }
+});
+</script>
+{% endblock %}

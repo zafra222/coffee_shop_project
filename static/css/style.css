@@ -1,0 +1,77 @@
+/* Custom brown color palette */
+        .bg-brown-50 { background-color: #FAF7F5; }
+        .bg-brown-100 { background-color: #F5EFE7; }
+        .bg-brown-200 { background-color: #E6D5C3; }
+        .bg-brown-300 { background-color: #D4B896; }
+        .bg-brown-400 { background-color: #C19A6B; }
+        .bg-brown-500 { background-color: #A67C52; }
+        .bg-brown-600 { background-color: #8B5A3C; }
+        .bg-brown-700 { background-color: #704030; }
+        .bg-brown-800 { background-color: #5C3427; }
+        .bg-brown-900 { background-color: #3E2318; }
+        
+        .text-brown-50 { color: #FAF7F5; }
+        .text-brown-100 { color: #F5EFE7; }
+        .text-brown-200 { color: #E6D5C3; }
+        .text-brown-300 { color: #D4B896; }
+        .text-brown-400 { color: #C19A6B; }
+        .text-brown-500 { color: #A67C52; }
+        .text-brown-600 { color: #8B5A3C; }
+        .text-brown-700 { color: #704030; }
+        .text-brown-800 { color: #5C3427; }
+        .text-brown-900 { color: #3E2318; }
+        
+        .border-brown-200 { border-color: #E6D5C3; }
+        .border-brown-300 { border-color: #D4B896; }
+        .hover\:bg-brown-50:hover { background-color: #FAF7F5; }
+        .hover\:bg-brown-200:hover { background-color: #E6D5C3; }
+        .hover\:bg-brown-500:hover { background-color: #A67C52; }
+        .hover\:bg-brown-700:hover { background-color: #704030; }
+        .hover\:text-brown-200:hover { color: #E6D5C3; }
+        .focus\:ring-brown-500:focus { --tw-ring-color: #A67C52; }
+
+        #toast-container {
+    pointer-events: none;
+}
+
+#toast-container > div {
+    pointer-events: auto;
+}
+
+/* Custom scrollbar for long messages */
+.toast-message {
+    max-height: 100px;
+    overflow-y: auto;
+}
+
+.toast-message::-webkit-scrollbar {
+    width: 4px;
+}
+
+.toast-message::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.toast-message::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 2px;
+}
+
+/* Animation for stacking toasts */
+#toast-container > div:not(:last-child) {
+    margin-bottom: 8px;
+}
+
+/* Responsive design */
+@media (max-width: 640px) {
+    #toast-container {
+        left: 1rem;
+        right: 1rem;
+        top: 1rem;
+    }
+    
+    #toast-container > div {
+        max-width: none;
+        width: 100%;
+    }
+}
