@@ -456,7 +456,7 @@ def admin_menu(request):
     }
     return render(request, 'shop/admin_menu.html', context)
 
-
+#1
 
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
