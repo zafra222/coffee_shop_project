@@ -113,6 +113,313 @@ class CustomLoginView(auth_views.LoginView):
         """Handle invalid login attempts"""
         messages.error(self.request, 'Invalid username or password. Please try again.')
         return super().form_invalid(form)
+    
+
+def admin_analytics(request):
+    """Analytics dashboard with comprehensive business metrics"""
+    
+    # Get date range from request (default to this week)
+    date_range = request.GET.get('range', 'week')
+    
+    # Calculate date ranges
+    now = timezone.now()
+    today = now.date()
+    
+    if date_range == 'today':
+        start_date = today
+        previous_start = today - timedelta(days=1)
+        previous_end = today - timedelta(days=1)
+    elif date_range == 'week':
+        start_date = today - timedelta(days=7)
+        previous_start = today - timedelta(days=14)
+        previous_end = today - timedelta(days=7)
+    elif date_range == 'month':
+        start_date = today - timedelta(days=30)
+        previous_start = today - timedelta(days=60)
+        previous_end = today - timedelta(days=30)
+    elif date_range == 'quarter':
+        start_date = today - timedelta(days=90)
+        previous_start = today - timedelta(days=180)
+        previous_end = today - timedelta(days=90)
+    else:  # year
+        start_date = today - timedelta(days=365)
+        previous_start = today - timedelta(days=730)
+        previous_end = today - timedelta(days=365)
+    
+    # Current period orders
+    current_orders = Order.objects.filter(
+        created_at__date__gte=start_date,
+        status__in=['completed', 'ready']
+    )
+    
+    # Previous period orders for comparison
+    previous_orders = Order.objects.filter(
+        created_at__date__gte=previous_start,
+        created_at__date__lt=previous_end,
+        status__in=['completed', 'ready']
+    )
+    
+    # Key Metrics
+    total_revenue = current_orders.aggregate(
+        total=Sum('total_amount')
+    )['total'] or Decimal('0')
+    
+    previous_revenue = previous_orders.aggregate(
+        total=Sum('total_amount')
+    )['total'] or Decimal('0')
+    
+    total_orders = current_orders.count()
+    previous_order_count = previous_orders.count()
+    
+    avg_order_value = current_orders.aggregate(
+        avg=Avg('total_amount')
+    )['avg'] or Decimal('0')
+    
+    previous_aov = previous_orders.aggregate(
+        avg=Avg('total_amount')
+    )['avg'] or Decimal('0')
+    
+    # Calculate growth percentages
+    def calculate_growth(current, previous):
+        if previous > 0:
+            return ((current - previous) / previous) * 100
+        return 0 if current == 0 else 100
+    
+    revenue_growth = calculate_growth(float(total_revenue), float(previous_revenue))
+    order_growth = calculate_growth(total_orders, previous_order_count)
+    aov_growth = calculate_growth(float(avg_order_value), float(previous_aov))
+    
+    # Customer metrics
+    total_customers = User.objects.filter(
+        order__created_at__date__gte=start_date
+    ).distinct().count()
+    
+    previous_customers = User.objects.filter(
+        order__created_at__date__gte=previous_start,
+        order__created_at__date__lt=previous_end
+    ).distinct().count()
+    
+    customer_growth = calculate_growth(total_customers, previous_customers)
+    
+    # Revenue chart data (daily for week, weekly for month, etc.)
+    revenue_chart_data = []
+    if date_range == 'week':
+        # Daily data for the week
+        for i in range(7):
+            day = today - timedelta(days=6-i)
+            day_revenue = Order.objects.filter(
+                created_at__date=day,
+                status__in=['completed', 'ready']
+            ).aggregate(total=Sum('total_amount'))['total'] or Decimal('0')
+            
+            prev_day_revenue = Order.objects.filter(
+                created_at__date=day - timedelta(days=7),
+                status__in=['completed', 'ready']
+            ).aggregate(total=Sum('total_amount'))['total'] or Decimal('0')
+            
+            max_revenue = max(float(day_revenue), float(prev_day_revenue), 1)
+            
+            revenue_chart_data.append({
+                'label': day.strftime('%a'),
+                'amount': float(day_revenue),
+                'current_width': (float(day_revenue) / max_revenue) * 100,
+                'previous_width': (float(prev_day_revenue) / max_revenue) * 80,
+            })
+    
+    # Order status distribution
+    all_orders = Order.objects.filter(created_at__date__gte=start_date)
+    total_all_orders = all_orders.count()
+    
+    order_status_data = []
+    status_colors = {
+        'pending': '#F59E0B',    # amber
+        'preparing': '#3B82F6',  # blue
+        'ready': '#10B981',      # emerald
+        'completed': '#6B7280',  # gray
+        'cancelled': '#EF4444',  # red
+    }
+    
+    for status_code, status_name in Order.STATUS_CHOICES:
+        count = all_orders.filter(status=status_code).count()
+        percentage = (count / total_all_orders * 100) if total_all_orders > 0 else 0
+        
+        order_status_data.append({
+            'label': status_name,
+            'count': count,
+            'percentage': percentage,
+            'color': status_colors.get(status_code, '#6B7280')
+        })
+    
+    # Top selling items
+    top_selling_items = OrderItem.objects.filter(
+        order__created_at__date__gte=start_date,
+        order__status__in=['completed', 'ready']
+    ).values(
+        'menu_item__name',
+        'menu_item__category'
+    ).annotate(
+        total_sold=Sum('quantity'),
+        total_revenue=Sum('price')
+    ).order_by('-total_sold')[:10]
+    
+    # Add item details to top selling items
+    for item in top_selling_items:
+        item['name'] = item['menu_item__name']
+        item['category'] = item['menu_item__category']
+    
+    # Category performance
+    category_performance = []
+    category_icons = {
+        'coffee': '☕',
+        'tea': '🍵',
+        'pastry': '🥐',
+        'sandwich': '🥪',
+        'dessert': '🍰',
+    }
+    
+    max_category_revenue = 0
+    categories_data = []
+    
+    for category_code, category_name in MenuItem.CATEGORY_CHOICES:
+        category_revenue = OrderItem.objects.filter(
+            order__created_at__date__gte=start_date,
+            order__status__in=['completed', 'ready'],
+            menu_item__category=category_code
+        ).aggregate(total=Sum('price'))['total'] or Decimal('0')
+        
+        category_orders = OrderItem.objects.filter(
+            order__created_at__date__gte=start_date,
+            order__status__in=['completed', 'ready'],
+            menu_item__category=category_code
+        ).values('order').distinct().count()
+        
+        item_count = MenuItem.objects.filter(category=category_code).count()
+        
+        categories_data.append({
+            'name': category_name,
+            'code': category_code,
+            'revenue': float(category_revenue),
+            'orders': category_orders,
+            'item_count': item_count,
+            'icon': category_icons.get(category_code, '☕')
+        })
+        
+        max_category_revenue = max(max_category_revenue, float(category_revenue))
+    
+    # Calculate percentages for category performance
+    for category in categories_data:
+        category['percentage'] = (category['revenue'] / max_category_revenue * 100) if max_category_revenue > 0 else 0
+    
+    category_performance = sorted(categories_data, key=lambda x: x['revenue'], reverse=True)
+    
+    # Recent activities (last 10 activities)
+    recent_activities = []
+    recent_orders = Order.objects.filter(
+        created_at__gte=now - timedelta(hours=24)
+    ).order_by('-created_at')[:10]
+    
+    for order in recent_orders:
+        if order.status == 'completed':
+            activity = {
+                'description': f'Order #{order.id} completed by {order.customer.username}',
+                'time': order.created_at.strftime('%H:%M'),
+                'icon_bg': 'bg-green-100',
+                'icon_color': 'text-green-600',
+                'icon_path': '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>'
+            }
+        elif order.status == 'cancelled':
+            activity = {
+                'description': f'Order #{order.id} was cancelled',
+                'time': order.created_at.strftime('%H:%M'),
+                'icon_bg': 'bg-red-100',
+                'icon_color': 'text-red-600',
+                'icon_path': '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>'
+            }
+        else:
+            activity = {
+                'description': f'New order #{order.id} placed by {order.customer.username}',
+                'time': order.created_at.strftime('%H:%M'),
+                'icon_bg': 'bg-blue-100',
+                'icon_color': 'text-blue-600',
+                'icon_path': '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path>'
+            }
+        recent_activities.append(activity)
+    
+    # Generate insights
+    insights = generate_insights(
+        total_revenue, revenue_growth, total_orders, order_growth,
+        avg_order_value, aov_growth, top_selling_items, category_performance
+    )
+    
+    context = {
+        'page_title': 'Analytics Dashboard',
+        'date_range': date_range,
+        
+        # Key metrics
+        'total_revenue': total_revenue,
+        'revenue_growth': revenue_growth,
+        'total_orders': total_orders,
+        'order_growth': order_growth,
+        'avg_order_value': avg_order_value,
+        'aov_growth': aov_growth,
+        'total_customers': total_customers,
+        'customer_growth': customer_growth,
+        
+        # Chart data
+        'revenue_chart_data': revenue_chart_data,
+        'order_status_data': order_status_data,
+        
+        # Tables
+        'top_selling_items': top_selling_items,
+        'category_performance': category_performance,
+        
+        # Activity and insights
+        'recent_activities': recent_activities,
+        'insights': insights,
+    }
+    
+    return render(request, 'admin/analytics.html', context)
+
+def generate_insights(total_revenue, revenue_growth, total_orders, order_growth, 
+                     avg_order_value, aov_growth, top_selling_items, category_performance):
+    """Generate business insights based on analytics data"""
+    
+    insights = {
+        'positive_insight': '',
+        'opportunity_insight': '',
+        'recommendation': ''
+    }
+    
+    # Positive insights
+    if revenue_growth > 10:
+        insights['positive_insight'] = f"Revenue is up {revenue_growth:.1f}%! Your business is showing strong growth momentum."
+    elif order_growth > 15:
+        insights['positive_insight'] = f"Customer orders increased by {order_growth:.1f}%, indicating growing customer base."
+    elif aov_growth > 5:
+        insights['positive_insight'] = f"Average order value rose by {aov_growth:.1f}%, showing customers are spending more."
+    else:
+        insights['positive_insight'] = "Your business is maintaining steady performance across key metrics."
+    
+    # Opportunity insights
+    if top_selling_items:
+        top_item = top_selling_items[0]
+        insights['opportunity_insight'] = f"{top_item['name']} is your bestseller with {top_item['total_sold']} units sold. Consider promoting similar items."
+    
+    if len(category_performance) > 1:
+        best_category = category_performance[0]
+        worst_category = category_performance[-1]
+        if best_category['revenue'] > worst_category['revenue'] * 3:
+            insights['opportunity_insight'] = f"{worst_category['name']} category is underperforming compared to {best_category['name']}. Consider menu optimization."
+    
+    # Recommendations
+    if aov_growth < 0:
+        insights['recommendation'] = "Consider bundling products or introducing premium options to increase average order value."
+    elif order_growth < 5:
+        insights['recommendation'] = "Focus on customer acquisition through marketing campaigns and loyalty programs."
+    else:
+        insights['recommendation'] = "Maintain current successful strategies while exploring new menu items based on popular categories."
+    
+    return insights
 @login_required
 def about(request):
     """About page view"""
